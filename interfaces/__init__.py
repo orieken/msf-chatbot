@@ -1,0 +1,1 @@
+"""Interface adapters for command parsing and validation."""
