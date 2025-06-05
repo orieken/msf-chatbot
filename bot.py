@@ -15,7 +15,7 @@ def main():
 
     intents = discord.Intents.default()
     intents.message_content = True
-    bot = commands.Bot(command_prefix="!", intents=intents)
+    bot = commands.Bot(command_prefix="raid-", intents=intents)
     adapter = DiscordAdapter()
 
     @bot.event
@@ -78,7 +78,7 @@ def main():
         embed = Assignment.to_discord_embed(assignments)
         await interaction.response.send_message(embed=embed)
 
-    # Text command: !list
+    # Text command: raid-list
     @bot.command(name="list")
     async def legacy_list(ctx):
         assignments = list(adapter.service.list_all_assignments().values())
