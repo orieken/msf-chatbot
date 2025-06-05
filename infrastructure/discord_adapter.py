@@ -1,9 +1,13 @@
-from core.repository import InMemoryAssignmentRepository
+from core.models import Assignment
+from core.repository import PersistentAssignmentRepository
 from core.services import AssignmentService
+import shutil
+import os
 
 class DiscordAdapter:
     def __init__(self):
-        self.service = AssignmentService(InMemoryAssignmentRepository())
+        self.repo = PersistentAssignmentRepository()
+        self.service = AssignmentService(self.repo)
 
     def _parse_args(self, args: str):
         parts = args.strip().split()
@@ -54,3 +58,18 @@ class DiscordAdapter:
         if removed:
             return f"✅ {opts['member']} removed from lane."
         return f"❌ {opts['member']} was not assigned to any lane."
+
+    def handle_backup(self) -> str:
+        try:
+            shutil.copyfile("assignments.json", "assignments_backup.json")
+            return "✅ Backup created successfully."
+        except Exception as e:
+            return f"❌ Failed to create backup: {e}"
+
+    def handle_reset(self) -> str:
+        try:
+            self.repo.assignments.clear()
+            self.repo.save()
+            return "✅ All assignments have been reset."
+        except Exception as e:
+            return f"❌ Failed to reset assignments: {e}"

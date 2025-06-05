@@ -1,3 +1,4 @@
+import json
 from typing import Dict, Optional, Tuple
 from core.models import Assignment, TEAMS, LANES_PER_TEAM
 
@@ -36,3 +37,35 @@ class InMemoryAssignmentRepository:
                 if f"{t}-{l}" not in self.assignments:
                     return (t, l)
         return None
+
+class PersistentAssignmentRepository(InMemoryAssignmentRepository):
+    def __init__(self, path='assignments.json'):
+        self.path = path
+        super().__init__()
+        self.load()
+
+    def assign(self, user, team, lane):
+        if super().assign(user, team, lane):
+            self.save()
+            return True
+        return False
+
+    def remove(self, user):
+        changed = super().remove(user)
+        if changed:
+            self.save()
+        return changed
+
+    def save(self):
+        with open(self.path, 'w') as f:
+            json.dump([a.__dict__ for a in self.assignments.values()], f)
+
+    def load(self):
+        try:
+            with open(self.path) as f:
+                data = json.load(f)
+                for entry in data:
+                    a = Assignment(**entry)
+                    self.assignments[f"{a.team}-{a.lane}"] = a
+        except FileNotFoundError:
+            pass
